@@ -28,7 +28,7 @@ CFLAGS=-Wall -WError \
 LFAGS=
 
 #############################################################
-INCS=-Ilib/src
+INCS=-Ilib/inc
 
 SOURCES = lib/src/libinjection_sqli.c   \
           lib/src/libinjection_html5.c  \
