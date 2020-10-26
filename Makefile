@@ -6,11 +6,11 @@ MODE=relase
 CC=gcc
 
 CFLAGS=-c -Wall -Werror \
+  -std=c11 \
   -O3 \
   -pie \
   -fPIE \
   -fPIC \
-  -ansi \
   -pedantic \
   --param ssp-buffer-size=4\
   -Wextra \

@@ -14,6 +14,8 @@ extern "C" {
 /*-----------------------------------------------------------------------------------*/
 
 
+#define MAX_FINGERPRINT_LEN (8)
+
 typedef enum sqli_flags {
     FLAG_NONE          = 0x00,
     FLAG_QUOTE_NONE    = 0x01,   /* 1 << 0 */
@@ -23,12 +25,14 @@ typedef enum sqli_flags {
     FLAG_SQL_MYSQL     = 0x10    /* 1 << 4 */
 } sqli_flags_e;
 
+
 typedef enum lookup_type {
     LOOKUP_WORD        = 1,
     LOOKUP_TYPE        = 2,
     LOOKUP_OPERATOR    = 3,
     LOOKUP_FINGERPRINT = 4
 } lookup_type_e;
+
 
 typedef struct libinjection_sqli_token {
     /*
@@ -59,49 +63,28 @@ typedef struct libinjection_sqli_state sqli_state_t;
 typedef char (*ptr_lookup_fn)(sqli_state_t* state, int lookuptype, const char* word, size_t len);
 
 struct libinjection_sqli_state {
-    /*
-     * input, does not need to be null terminated.
-     * it is also not modified.
-     */
-    const char *s;
+    /* input data */
+    const char *s;      /* input data pointer, does not need to be null terminated. it is also not modified. */
+    size_t      slen;   /* input length */
 
-    /*
-     * input length
-     */
-    size_t slen;
+    /* How to lookup a word or fingerprint */
+    ptr_lookup_fn  lookup;
+    void          *userdata;
 
-    /*
-     * How to lookup a word or fingerprint
-     */
-    ptr_lookup_fn lookup;
-    void*         userdata;
-
-    /*
-     *
-     */
     int flags;
 
-    /*
-     * pos is the index in the string during tokenization
-     */
+    /* pos is the index in the string during tokenization */
     size_t pos;
 
-    /* MAX TOKENS + 1 since we use one extra token
-     * to determine the type of the previous token
-     */
+    /* MAX TOKENS + 1 since we use one extra token  to determine the type of the previous token */
     sqli_token_t tokenvec[8];
 
-    /*
-     * Pointer to token position in tokenvec, above
-     */
+    /* Pointer to token position in tokenvec, above */
     sqli_token_t* current;
 
-    /*
-     * fingerprint pattern c-string
-     * +1 for ending null
-     * Minimum of 8 bytes to add gcc's -fstack-protector to work
-     */
-    char   fingerprint[8];
+    /* fingerprint pattern c-string +1 for ending null
+     * Minimum of 8 bytes to add gcc's -fstack-protector to work */
+    char   fingerprint[MAX_FINGERPRINT_LEN];
     size_t fingerprint_length;
 
     /*
@@ -114,45 +97,30 @@ struct libinjection_sqli_state {
     int reason;
 
     /* Number of ddw (dash-dash-white) comments
-     * These comments are in the form of
-     *   '--[whitespace]' or '--[EOF]'
-     *
+     * These comments are in the form of  '--[whitespace]' or '--[EOF]'
      * All databases treat this as a comment.
      */
      int stats_comment_ddw;
 
     /* Number of ddx (dash-dash-[notwhite]) comments
-     *
      * ANSI SQL treats these are comments, MySQL treats this as
      * two unary operators '-' '-'
-     *
      * If you are parsing result returns FALSE and
-     * stats_comment_dd > 0, you should reparse with
-     * COMMENT_MYSQL
-     *
+     * stats_comment_dd > 0, you should reparse with COMMENT_MYSQL
      */
     int stats_comment_ddx;
 
-    /*
-     * c-style comments found  /x .. x/
-     */
+    /* c-style comments found /x .. x/ */
     int stats_comment_c;
 
-    /* '#' operators or MySQL EOL comments found
-     *
-     */
+    /* '#' operators or MySQL EOL comments found */
     int stats_comment_hash;
 
-    /*
-     * number of tokens folded away
-     */
+    /* number of tokens folded away */
     int stats_folds;
 
-    /*
-     * total tokens processed
-     */
+    /* total tokens processed */
     int stats_tokens;
-
 };
 
 sqli_token_t* libinjection_sqli_get_token(sqli_state_t* sqlistate, int i);
@@ -191,15 +159,13 @@ int libinjection_is_sqli(sqli_state_t* sql_state);
  *   provides deep hooks into the decision making process
  */
 void libinjection_sqli_callback(sqli_state_t*  sql_state,
-                                ptr_lookup_fn fn,
-                                void* userdata);
+                                ptr_lookup_fn fn, void* userdata);
 
 
 /*
  * Resets state, but keeps initial string and callbacks
  */
-void libinjection_sqli_reset(sqli_state_t* sql_state,
-                             int flags);
+void libinjection_sqli_reset(sqli_state_t* sql_state, int flags);
 
 /**
  *
@@ -216,17 +182,14 @@ void libinjection_sqli_reset(sqli_state_t* sql_state,
  *          do not free!
  *
  */
-const char* libinjection_sqli_fingerprint(sqli_state_t* sql_state,
-                                          int flags);
+const char* libinjection_sqli_fingerprint(sqli_state_t* sql_state, int flags);
 
 /**
  * The default "word" to token-type or fingerprint function.  This
  * uses a ASCII case-insensitive binary tree.
  */
 char libinjection_sqli_lookup_word(sqli_state_t* sql_state,
-                                   int lookup_type,
-                                   const char* s,
-                                   size_t slen);
+                                   int lookup_type, const char* s, size_t slen);
 
 /* Streaming tokenization interface.
  *

@@ -1,7 +1,9 @@
-#include "libinjection_html5.h"
-
 #include <string.h>
 #include <assert.h>
+
+#include "libinjection_html5.h"
+#include "libinjection_common.h"
+
 
 #ifdef DEBUG
 #include <stdio.h>

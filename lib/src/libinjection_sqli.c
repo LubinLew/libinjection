@@ -14,11 +14,16 @@
 #include <assert.h>
 #include <stddef.h>
 
+
 #include <libinjection.h>
 #include <libinjection_sqli.h>
+
+#include "libinjection_common.h"
 #include "libinjection_sqli_data.h"
 
+
 #define LIBINJECTION_VERSION "1.0.0"
+
 
 #define LIBINJECTION_SQLI_TOKEN_SIZE  sizeof(((sqli_token_t*)(0))->val)
 #define LIBINJECTION_SQLI_MAX_TOKENS  5
@@ -38,11 +43,6 @@
 /* faster than calling out to libc isdigit */
 #define ISDIGIT(a) ((unsigned)((a) - '0') <= 9)
 
-#if 0
-#define FOLD_DEBUG printf("%d \t more=%d  pos=%d left=%d\n", __LINE__, more, (int)pos, (int)left);
-#else
-#define FOLD_DEBUG
-#endif
 
 /*
  * not making public just yet
@@ -82,7 +82,8 @@ typedef enum sqli_token_types {
  * Initializes parsing state
  *
  */
-static char flag2delim(int flag)
+static char 
+flag2delim(int flag)
 {
     if (flag & FLAG_QUOTE_SINGLE) {
         return CHAR_SINGLE;
@@ -282,10 +283,7 @@ static char is_keyword(const char* key, size_t len)
  *
  */
 
-static void st_clear(sqli_token_t * st)
-{
-    memset(st, 0, sizeof(sqli_token_t));
-}
+
 
 static void st_assign_char(sqli_token_t * st, const char stype, size_t pos, size_t len,
                            const char value)
@@ -630,32 +628,24 @@ static size_t is_double_delim_escaped(const char* cur,  const char* end)
  * since it's the wrong char or EOL
  *
  */
-static size_t parse_string_core(const char *cs, const size_t len, size_t pos,
-                                sqli_token_t * st, char delim, size_t offset)
+static size_t 
+parse_string_core(const char *cs, const size_t len, size_t pos,
+                         sqli_token_t * st, char delim, size_t offset)
 {
-    /*
-     * offset is to skip the perhaps first quote char
-     */
-    const char *qpos =
-        (const char *) memchr((const void *) (cs + pos + offset), delim,
+    /* offset is to skip the perhaps first quote char */
+    const char *qpos = memchr((const void *)(cs + pos + offset), delim,
                               len - pos - offset);
 
-    /*
-     * then keep string open/close info
-     */
+    /* then keep string open/close info */
     if (offset > 0) {
-        /*
-         * this is real quote
-         */
+        /* this is real quote */
         st->str_open = delim;
     } else {
-        /*
-         * this was a simulated quote
-         */
+        /* this was a simulated quote */
         st->str_open = CHAR_NULL;
     }
 
-    while (TRUE) {
+    for(;;) {
         if (qpos == NULL) {
             /*
              * string ended with no trailing quote
@@ -905,7 +895,7 @@ static size_t parse_word(sqli_state_t * sf)
             ch = sf->lookup(sf, LOOKUP_WORD, sf->current->val, i);
             if (ch != TYPE_NONE && ch != TYPE_BAREWORD) {
                 /* needed for swig */
-                st_clear(sf->current);
+                struct_clear(sf->current);
                 /*
                  * we got something like "SELECT.1"
                  * or SELECT`column`
@@ -1202,19 +1192,20 @@ const char* libinjection_version()
     return LIBINJECTION_VERSION;
 }
 
-int libinjection_sqli_tokenize(sqli_state_t* sf)
+int 
+libinjection_sqli_tokenize(sqli_state_t* sf)
 {
-    pt2Function fnptr;
-    size_t *pos = &sf->pos;
+    pt2Function   fnptr;
+    size_t       *pos = &sf->pos;
     sqli_token_t *current = sf->current;
-    const char *s = sf->s;
-    const size_t slen = sf->slen;
+    const char   *s = sf->s;
+    const size_t  slen = sf->slen;
 
-    if (slen == 0) {
+    if (unlikely(slen == 0)) {
         return FALSE;
     }
 
-    st_clear(current);
+    struct_clear(current);
     sf->current = current;
 
     /*
@@ -1229,21 +1220,16 @@ int libinjection_sqli_tokenize(sqli_state_t* sf)
     }
 
     while (*pos < slen) {
-
-        /*
-         * get current character
-         */
+        /* get current character */
         const unsigned char ch = (unsigned char) (s[*pos]);
 
         /*
          * look up the parser, and call it
-         *
-         * Porting Note: this is mapping of char to function
-         *   charparsers[ch]()
+         * Porting Note: this is mapping of char to function charparsers[ch]()
          */
         fnptr = char_parse_map[ch];
 
-        *pos = (*fnptr) (sf);
+        *pos = (*fnptr)(sf);
 
         /*
          *
@@ -1272,9 +1258,10 @@ libinjection_sqli_init(sqli_state_t* sf, const char *data, size_t len, int flags
     sf->current  = &(sf->tokenvec[0]);
 }
 
-void 
+void EXTERN
 libinjection_sqli_reset(sqli_state_t* sf, int flags)
 {
+    /* keep callback */
     void *userdata = sf->userdata;
     ptr_lookup_fn lookup = sf->lookup;;
 
@@ -1287,7 +1274,7 @@ libinjection_sqli_reset(sqli_state_t* sf, int flags)
     sf->userdata = userdata;
 }
 
-void 
+void EXTERN
 libinjection_sqli_callback(sqli_state_t* sf, ptr_lookup_fn fn, void* userdata)
 {
     if (fn == NULL) {
@@ -1377,17 +1364,15 @@ int
 libinjection_sqli_fold(sqli_state_t* sf)
 {
     sqli_token_t last_comment;
-
-    /* POS is the position of where the NEXT token goes */
-    size_t pos = 0;
+    size_t pos = 0;  /* the position of where the NEXT token goes */
 
     /* LEFT is a count of how many tokens that are already
-       folded or processed (i.e. part of the fingerprint) */
+      folded or processed (i.e. part of the fingerprint) */
     size_t left =  0;
 
     int more = 1;
 
-    st_clear(&last_comment);
+    struct_clear(&last_comment);
 
     /* Skip all initial comments, right-parens ( and unary operators
      *
@@ -1412,7 +1397,7 @@ libinjection_sqli_fold(sqli_state_t* sf)
     }
 
     while (1) {
-        FOLD_DEBUG;
+        Trace("more=%d pos=%d left=%d", more, (int)pos, (int)left);;
 
         /* do we have all the max number of tokens?  if so do
          * some special cases for 5 tokens
@@ -1478,7 +1463,7 @@ libinjection_sqli_fold(sqli_state_t* sf)
                 }
             }
         }
-        FOLD_DEBUG;
+        Trace("more=%d pos=%d left=%d", more, (int)pos, (int)left);;
         /* did we get 2 tokens? if not then we are done */
         if (pos - left < 2) {
             left = pos;
@@ -1695,7 +1680,7 @@ libinjection_sqli_fold(sqli_state_t* sf)
         /* all cases of handing 2 tokens is done
            and nothing matched.  Get one more token
         */
-        FOLD_DEBUG;
+        Trace("more=%d pos=%d left=%d", more, (int)pos, (int)left);;
         while (more && pos <= LIBINJECTION_SQLI_MAX_TOKENS && pos - left < 3) {
             sf->current = &(sf->tokenvec[pos]);
             more = libinjection_sqli_tokenize(sf);
@@ -1922,11 +1907,12 @@ libinjection_sqli_fingerprint(sqli_state_t* sql_state, int flags)
      * * And it's empty?
      * Then convert it to comment
      */
-    if (tlen > 2 &&
-        sql_state->tokenvec[tlen-1].type == TYPE_BAREWORD &&
-        sql_state->tokenvec[tlen-1].str_open == CHAR_TICK &&
-        sql_state->tokenvec[tlen-1].len == 0 &&
-        sql_state->tokenvec[tlen-1].str_close == CHAR_NULL) {
+    if ((tlen > 2) &&
+        (sql_state->tokenvec[tlen-1].type == TYPE_BAREWORD) &&
+        (sql_state->tokenvec[tlen-1].str_open == CHAR_TICK) &&
+        (sql_state->tokenvec[tlen-1].len == 0) &&
+        (sql_state->tokenvec[tlen-1].str_close == CHAR_NULL))
+    {
         sql_state->tokenvec[tlen-1].type = TYPE_COMMENT;
     }
 
@@ -1971,6 +1957,9 @@ int libinjection_sqli_check_fingerprint(sqli_state_t* sql_state)
         libinjection_sqli_not_whitelist(sql_state);
 }
 
+/**
+ * Return: 0:not match, other match
+ */
 char libinjection_sqli_lookup_word(sqli_state_t* sql_state, int lookup_type,
                                    const char* str, size_t len)
 {
@@ -1990,7 +1979,7 @@ int libinjection_sqli_blacklist(sqli_state_t* sql_state)
     char fp2[8];
     char ch;
     size_t i;
-    size_t len = strlen(sql_state->fingerprint);
+    size_t len = sql_state->fingerprint_length;
     int patmatch;
 
     if (len < 1) {
@@ -2232,7 +2221,8 @@ int libinjection_sqli_not_whitelist(sqli_state_t* sql_state)
  *
  *
  */
-static int reparse_as_mysql(sqli_state_t* sql_state)
+static inline int 
+reparse_as_mysql(sqli_state_t* sql_state)
 {
     return sql_state->stats_comment_ddx ||
         sql_state->stats_comment_hash;
@@ -2241,23 +2231,24 @@ static int reparse_as_mysql(sqli_state_t* sql_state)
 /*
  * This function is mostly use with SWIG
  */
-struct libinjection_sqli_token*
+sqli_token_t *
 libinjection_sqli_get_token(sqli_state_t* sql_state, int i)
 {
-    if (i < 0 || i > (int)LIBINJECTION_SQLI_MAX_TOKENS) {
+    if (i < 0 || i > LIBINJECTION_SQLI_MAX_TOKENS) {
         return NULL;
     }
     return &(sql_state->tokenvec[i]);
 }
 
-int libinjection_is_sqli(sqli_state_t* sql_state)
+int EXTERN
+libinjection_is_sqli(sqli_state_t* sql_state)
 {
     const char *data = sql_state->s;
     size_t      len  = sql_state->slen;
     char        ret  = 0;
 
     /* no input? not SQLi */
-    if (len == 0) {
+    if (unlikely(len == 0)) {
         return FALSE;
     }
 
@@ -2265,7 +2256,8 @@ int libinjection_is_sqli(sqli_state_t* sql_state)
     libinjection_sqli_fingerprint(sql_state, FLAG_QUOTE_NONE | FLAG_SQL_ANSI);
     ret = sql_state->lookup(sql_state, LOOKUP_FINGERPRINT,
                             sql_state->fingerprint, sql_state->fingerprint_length);
-    if (ret) {
+    if (unlikely(ret)) {
+        Trace("[SQL-ANSI]fingerprint match, %s", sql_state->fingerprint);
         return TRUE;
     }  
 
@@ -2273,7 +2265,8 @@ int libinjection_is_sqli(sqli_state_t* sql_state)
         libinjection_sqli_fingerprint(sql_state, FLAG_QUOTE_NONE | FLAG_SQL_MYSQL);
         ret = sql_state->lookup(sql_state, LOOKUP_FINGERPRINT,
                                 sql_state->fingerprint, sql_state->fingerprint_length);
-        if (ret) {
+        if (unlikely(ret)) {
+            Trace("[SQL-MYSQL]fingerprint match, %s", sql_state->fingerprint);
             return TRUE;
         }
     }
@@ -2312,13 +2305,17 @@ int libinjection_is_sqli(sqli_state_t* sql_state)
         }
     }
 
-    /*
-     * Hurray, input is not SQLi
-     */
+
     return FALSE;
 }
 
-int 
+/**
+ * libinjection 做了一个假设，它假设黑客只能通过三种方法来进行sql攻击
+ *  1)直接注入sql语句
+ *  2)在单引号内注入sql
+ *  3)在双引号内注入sql
+ */
+int EXTERN
 libinjection_sqli(const char* data, size_t len, char fingerprint[])
 {
     int          issqli;
@@ -2328,7 +2325,7 @@ libinjection_sqli(const char* data, size_t len, char fingerprint[])
     issqli = libinjection_is_sqli(&state);
 
     if (issqli) {
-        strcpy(fingerprint, state.fingerprint);
+        strncpy(fingerprint, state.fingerprint, MAX_FINGERPRINT_LEN);
     } else {
         fingerprint[0] = '\0';
     }
