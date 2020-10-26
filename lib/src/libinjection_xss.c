@@ -1,7 +1,7 @@
 
-#include "libinjection.h"
-#include "libinjection_xss.h"
-#include "libinjection_html5.h"
+#include <libinjection.h>
+#include <libinjection_xss.h>
+#include <libinjection_html5.h>
 
 #include <assert.h>
 #include <stdio.h>

@@ -11,20 +11,20 @@
 #endif
 
 
-#define CHAR_EOF -1
-#define CHAR_NULL 0
-#define CHAR_BANG 33
-#define CHAR_DOUBLE 34
-#define CHAR_PERCENT 37
-#define CHAR_SINGLE 39
-#define CHAR_DASH 45
-#define CHAR_SLASH 47
-#define CHAR_LT 60
-#define CHAR_EQUALS 61
-#define CHAR_GT 62
+#define CHAR_EOF      -1
+#define CHAR_NULL     0
+#define CHAR_BANG     33
+#define CHAR_DOUBLE   34
+#define CHAR_PERCENT  37
+#define CHAR_SINGLE   39
+#define CHAR_DASH     45
+#define CHAR_SLASH    47
+#define CHAR_LT       60
+#define CHAR_EQUALS   61
+#define CHAR_GT       62
 #define CHAR_QUESTION 63
-#define CHAR_RIGHTB 93
-#define CHAR_TICK 96
+#define CHAR_RIGHTB   93
+#define CHAR_TICK     96
 
 /* prototypes */
 

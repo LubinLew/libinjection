@@ -10,31 +10,31 @@ typedef struct {
     char type;
 } keyword_t;
 
-static size_t parse_money(sfilter * sf);
-static size_t parse_other(sfilter * sf);
-static size_t parse_white(sfilter * sf);
-static size_t parse_operator1(sfilter *sf);
-static size_t parse_char(sfilter *sf);
-static size_t parse_hash(sfilter *sf);
-static size_t parse_dash(sfilter *sf);
-static size_t parse_slash(sfilter *sf);
-static size_t parse_backslash(sfilter * sf);
-static size_t parse_operator2(sfilter *sf);
-static size_t parse_string(sfilter *sf);
-static size_t parse_word(sfilter * sf);
-static size_t parse_var(sfilter * sf);
-static size_t parse_number(sfilter * sf);
-static size_t parse_tick(sfilter * sf);
-static size_t parse_ustring(sfilter * sf);
-static size_t parse_qstring(sfilter * sf);
-static size_t parse_nqstring(sfilter * sf);
-static size_t parse_xstring(sfilter * sf);
-static size_t parse_bstring(sfilter * sf);
-static size_t parse_estring(sfilter * sf);
-static size_t parse_bword(sfilter * sf);
+static size_t parse_money(sqli_state_t * sf);
+static size_t parse_other(sqli_state_t * sf);
+static size_t parse_white(sqli_state_t * sf);
+static size_t parse_operator1(sqli_state_t *sf);
+static size_t parse_char(sqli_state_t *sf);
+static size_t parse_hash(sqli_state_t *sf);
+static size_t parse_dash(sqli_state_t *sf);
+static size_t parse_slash(sqli_state_t *sf);
+static size_t parse_backslash(sqli_state_t * sf);
+static size_t parse_operator2(sqli_state_t *sf);
+static size_t parse_string(sqli_state_t *sf);
+static size_t parse_word(sqli_state_t * sf);
+static size_t parse_var(sqli_state_t * sf);
+static size_t parse_number(sqli_state_t * sf);
+static size_t parse_tick(sqli_state_t * sf);
+static size_t parse_ustring(sqli_state_t * sf);
+static size_t parse_qstring(sqli_state_t * sf);
+static size_t parse_nqstring(sqli_state_t * sf);
+static size_t parse_xstring(sqli_state_t * sf);
+static size_t parse_bstring(sqli_state_t * sf);
+static size_t parse_estring(sqli_state_t * sf);
+static size_t parse_bword(sqli_state_t * sf);
 
 
-typedef size_t (*pt2Function)(sfilter *sf);
+typedef size_t (*pt2Function)(sqli_state_t* sf);
 static const pt2Function char_parse_map[] = {
    &parse_white, /* 0 */
    &parse_white, /* 1 */
