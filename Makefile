@@ -1,35 +1,67 @@
+.DEFAULT_GOAL := all
+LIBNAME=libinjection
+OUTDIR=target
+MODE=relase
+#############################################################
+CC=gcc
 
-SUBDIRS=src
+CFLAGS=-Wall -WError \
+  -O3 \
+  -pie \
+  -fPIE \
+  -fPIC \
+  -ansi \
+  -pedantic \
+  -param \
+  -Wextra \
+  -Wshadow \
+  -Wformat \
+  -Wformat-security \
+  -Wcast-qual \
+  -Wcast-align \
+  -Wpointer-arith \
+  -Wstack-protector \
+  -fstack-protector \
+  -ssp-buffer-size=4 \
+  -D_FORTIFY_SOURCE=2
 
-all:  ## build c library
-	(cd src; ${MAKE} all)
-check:  ## run tests
-	(cd src; ${MAKE} check)
-clean:  ## clean up
-	@(cd src; ${MAKE} clean)
-	git gc --aggressive
+LFAGS=
+
+#############################################################
+INCS=-Ilib/src
+
+SOURCES = lib/src/libinjection_sqli.c   \
+          lib/src/libinjection_html5.c  \
+          lib/src/libinjection_xss.c
+
+OBJS=$(SOURCES:%.c=${OUTDIR}/%.o)
+#############################################################
 
 .PHONY: all check clean
 
-docker-console:  ## log into the docker test image
-	docker run --rm -it \
-		-e COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN \
-		-v $(PWD):/build \
-		-w /build \
-		nickg/libinjection-docker \
-		sh
+all: ${LIBNAME}.a ${LIBNAME}.so
 
-docker-ci:   ## run the tests in docker, as travis-ci does
-	docker run --rm \
-		-e COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN \
-		-v $(PWD):/build \
-		-w /build \
-		nickg/libinjection-docker \
-		./make-ci.sh
+	
+${LIBNAME}.a: ${OBJS}
+	@ echo "[AR] $@"
+	@ ar crs ${OUTDIR}/$@ $^
+	@ ls -lh ${OUTDIR}/$@
 
-# https://www.client9.com/self-documenting-makefiles/
-help:
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
-.PHONY: help
-.DEFAULT_GOAL := help
+${LIBNAME}.so: ${OBJS}
+	@ echo "[SO] $@"
+	@ ${CC} -shared -o ${OUTDIR}/$@ $^
+	@ ls -lh ${OUTDIR}/$@
 
+
+check:
+	(cd src; ${MAKE} check)
+
+clean:
+	@ rm -rf ${OUTDIR}
+	@ echo "ALL Clear !!!"
+
+#############################################################
+${OUTDIR}/%.o:%.c
+	@ mkdir -p $(@D)
+	@ echo "[CC] $^"
+	@ ${CC} ${CFLAGS} ${INCS} $< -o $@ ${LFLAGS}
