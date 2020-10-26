@@ -1,21 +1,27 @@
-#ifndef LIBINJECTION_XSS
-#define LIBINJECTION_XSS
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * HEY THIS ISN'T DONE
  */
 
-/* pull in size_t */
 
-#include <string.h>
+#ifndef __LIBINJECTION_XSS_H__
+#define __LIBINJECTION_XSS_H__
 
-  int libinjection_is_xss(const char* s, size_t len, int flags);
+
+#include <string.h> /* for size_t */
+
 
 #ifdef __cplusplus
-}
-#endif
-#endif
+extern "C" {
+#endif /* __cplusplus */
+/*-----------------------------------------------------------------------------------*/
+
+int libinjection_is_xss(const char* data, size_t len, int flags);
+
+/*-----------------------------------------------------------------------------------*/
+#ifdef __cplusplus
+} /* extern "C" */
+#endif /* __cplusplus */
+
+
+#endif /* __LIBINJECTION_XSS_H__ */
+

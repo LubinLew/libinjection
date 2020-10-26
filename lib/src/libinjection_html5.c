@@ -63,7 +63,7 @@ static int h5_state_doctype(h5_state_t* hs);
 /**
  * public function
  */
-void libinjection_h5_init(h5_state_t* hs, const char* s, size_t len, enum html5_flags flags)
+void libinjection_h5_init(h5_state_t* hs, const char* s, size_t len, html5_flags_e flags)
 {
     memset(hs, 0, sizeof(h5_state_t));
     hs->s = s;

@@ -1,15 +1,16 @@
-#ifndef LIBINJECTION_HTML5
-#define LIBINJECTION_HTML5
+#ifndef __LIBINJECTION_HTML5_H__
+#define __LIBINJECTION_HTML5_H__
+
+
+#include <string.h> /* for size_t */
+
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /* __cplusplus */
+/*-----------------------------------------------------------------------------------*/
 
-/* pull in size_t */
-
-#include <stddef.h>
-
-enum html5_type {
+typedef enum html5_type {
     DATA_TEXT
     , TAG_NAME_OPEN
     , TAG_NAME_CLOSE
@@ -20,15 +21,15 @@ enum html5_type {
     , ATTR_VALUE
     , TAG_COMMENT
     , DOCTYPE
-};
+} html5_type_e;
 
-enum html5_flags {
+typedef enum html5_flags {
   DATA_STATE
   , VALUE_NO_QUOTE
   , VALUE_SINGLE_QUOTE
   , VALUE_DOUBLE_QUOTE
   , VALUE_BACK_QUOTE
-};
+} html5_flags_e;
 
 struct h5_state;
 typedef int (*ptr_html5_state)(struct h5_state*);
@@ -41,14 +42,18 @@ typedef struct h5_state {
     ptr_html5_state state;
     const char* token_start;
     size_t token_len;
-    enum html5_type token_type;
+    html5_type_e token_type;
 } h5_state_t;
 
 
-void libinjection_h5_init(h5_state_t* hs, const char* s, size_t len, enum html5_flags);
+void libinjection_h5_init(h5_state_t* hs, const char* s, size_t len, html5_flags_e html5_flags);
 int libinjection_h5_next(h5_state_t* hs);
 
+/*-----------------------------------------------------------------------------------*/
 #ifdef __cplusplus
-}
-#endif
-#endif
+} /* extern "C" */
+#endif /* __cplusplus */
+
+
+#endif /* __LIBINJECTION_HTML5_H__ */
+

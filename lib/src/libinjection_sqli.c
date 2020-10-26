@@ -1263,7 +1263,7 @@ libinjection_sqli_init(sqli_state_t* sf, const char *data, size_t len, int flags
         flags = FLAG_QUOTE_NONE | FLAG_SQL_ANSI;
     }
 
-    memset(sf, 0, sizeof(sqli_state_t));
+    memset(sf, 0x00, sizeof(sqli_state_t));
     sf->s        = data;
     sf->slen     = len;
     sf->lookup   = libinjection_sqli_lookup_word;
@@ -1904,7 +1904,8 @@ libinjection_sqli_fold(sqli_state_t* sf)
  *          double quote.
  *
  */
-const char* libinjection_sqli_fingerprint(sqli_state_t* sql_state, int flags)
+const char* 
+libinjection_sqli_fingerprint(sqli_state_t* sql_state, int flags)
 {
     int i;
     int tlen = 0;
@@ -2251,27 +2252,28 @@ libinjection_sqli_get_token(sqli_state_t* sql_state, int i)
 
 int libinjection_is_sqli(sqli_state_t* sql_state)
 {
-    const char *s = sql_state->s;
-    size_t slen = sql_state->slen;
+    const char *data = sql_state->s;
+    size_t      len  = sql_state->slen;
+    char        ret  = 0;
 
-    /*
-     * no input? not SQLi
-     */
-    if (slen == 0) {
+    /* no input? not SQLi */
+    if (len == 0) {
         return FALSE;
     }
 
-    /*
-     * test input "as-is"
-     */
+    /* test input "as-is" */
     libinjection_sqli_fingerprint(sql_state, FLAG_QUOTE_NONE | FLAG_SQL_ANSI);
-    if (sql_state->lookup(sql_state, LOOKUP_FINGERPRINT,
-                          sql_state->fingerprint, sql_state->fingerprint_length)) {
+    ret = sql_state->lookup(sql_state, LOOKUP_FINGERPRINT,
+                            sql_state->fingerprint, sql_state->fingerprint_length);
+    if (ret) {
         return TRUE;
-    } else if (reparse_as_mysql(sql_state)) {
+    }  
+
+    if (reparse_as_mysql(sql_state)) {
         libinjection_sqli_fingerprint(sql_state, FLAG_QUOTE_NONE | FLAG_SQL_MYSQL);
-        if (sql_state->lookup(sql_state, LOOKUP_FINGERPRINT,
-                              sql_state->fingerprint, sql_state->fingerprint_length)) {
+        ret = sql_state->lookup(sql_state, LOOKUP_FINGERPRINT,
+                                sql_state->fingerprint, sql_state->fingerprint_length);
+        if (ret) {
             return TRUE;
         }
     }
@@ -2285,7 +2287,7 @@ int libinjection_is_sqli(sqli_state_t* sql_state)
      *   is_string_sqli(sql_state, "'" + s, slen+1, NULL, fn, arg)
      *
      */
-    if (memchr(s, CHAR_SINGLE, slen)) {
+    if (memchr(data, CHAR_SINGLE, len)) {
         libinjection_sqli_fingerprint(sql_state, FLAG_QUOTE_SINGLE | FLAG_SQL_ANSI);
         if (sql_state->lookup(sql_state, LOOKUP_FINGERPRINT,
                               sql_state->fingerprint, sql_state->fingerprint_length)) {
@@ -2302,7 +2304,7 @@ int libinjection_is_sqli(sqli_state_t* sql_state)
     /*
      * same as above but with a double-quote "
      */
-    if (memchr(s, CHAR_DOUBLE, slen)) {
+    if (memchr(data, CHAR_DOUBLE, len)) {
         libinjection_sqli_fingerprint(sql_state, FLAG_QUOTE_DOUBLE | FLAG_SQL_MYSQL);
         if (sql_state->lookup(sql_state, LOOKUP_FINGERPRINT,
                               sql_state->fingerprint, sql_state->fingerprint_length)) {
@@ -2324,10 +2326,13 @@ libinjection_sqli(const char* data, size_t len, char fingerprint[])
 
     libinjection_sqli_init(&state, data, len, 0);
     issqli = libinjection_is_sqli(&state);
+
     if (issqli) {
         strcpy(fingerprint, state.fingerprint);
     } else {
         fingerprint[0] = '\0';
     }
+
     return issqli;
 }
+
