@@ -1,23 +1,20 @@
-[![Build Status](https://travis-ci.org/client9/libinjection.svg?branch=master)](https://travis-ci.org/client9/libinjection)
-[![Coverage Status](https://coveralls.io/repos/client9/libinjection/badge.svg?branch=master&service=github)](https://coveralls.io/github/client9/libinjection?branch=master)  [![license](https://img.shields.io/badge/license-BSD_3--Clause-blue.svg?style=flat)](https://raw.githubusercontent.com/client9/libinjection/master/COPYING)
-
 libinjection
 ============
 
-SQL / SQLI tokenizer parser analyzer. For
+SQL / SQLI tokenizer parser analyzer For C.
 
-* C and C++
-* [PHP](https://libinjection.client9.com/doc-sqli-php)
-* [Python](https://libinjection.client9.com/doc-sqli-python)
-* [Lua](/lua)
-* [Java](https://github.com/jeonglee/Libinjection) (external port)
-* [LuaJIT/FFI] (https://github.com/p0pr0ck5/lua-ffi-libinjection) (external port)
 
-See
-[https://www.client9.com/](https://www.client9.com/)
-for details and presentations.
 
-Simple example:
+## LICENSE
+
+Copyright (c) 2012-2016 Nick Galbreath
+
+Licensed under the standard [BSD 3-Clause](http://opensource.org/licenses/BSD-3-Clause) open source
+license. See [COPYING](https://github.com/client9/libinjection/blob/master/COPYING) for details.
+
+
+
+## Example
 
 ```c
 #include <stdio.h>
@@ -51,31 +48,9 @@ $ ./a.out "-1' and 1=1 union/* foo */select load_file('/etc/passwd')--"
 sqli detected with fingerprint of 's&1UE'
 ```
 
-More advanced samples:
 
-* [sqli_cli.c](/src/sqli_cli.c)
-* [reader.c](/src/reader.c)
-* [fptool](/src/fptool.c)
 
-VERSION INFORMATION
-===================
-
-See [CHANGELOG](/CHANGELOG) for details.
-
-Versions are listed as "major.minor.point"
-
-Major are significant changes to the API and/or fingerprint format.
-Applications will need recompiling and/or refactoring.
-
-Minor are C code changes.  These may include
- * logical change to detect or suppress
- * optimization changes
- * code refactoring
-
-Point releases are purely data changes.  These may be safely applied.
-
-QUALITY AND DIAGNOSITICS
-========================
+## QUALITY AND DIAGNOSITICS
 
 The continuous integration results at
 https://travis-ci.org/client9/libinjection tests the following:
@@ -87,23 +62,4 @@ https://travis-ci.org/client9/libinjection tests the following:
 - [x] checks for memory errors using [valgrind](http://valgrind.org/)
 - [x] code coverage online using [coveralls.io](https://coveralls.io/github/client9/libinjection)
 
-LICENSE
-=============
-
-Copyright (c) 2012-2016 Nick Galbreath
-
-Licensed under the standard [BSD 3-Clause](http://opensource.org/licenses/BSD-3-Clause) open source
-license.  See [COPYING](/COPYING) for details.
-
-EMBEDDING
-=============
-
-The [src](https://github.com/client9/libinjection/tree/master/src)
-directory contains everything, but you only need to copy the following
-into your source tree:
-
-* [src/libinjection.h](/src/libinjection.h)
-* [src/libinjection_sqli.c](/src/libinjection_sqli.c)
-* [src/libinjection_sqli_data.h](/src/libinjection_sqli_data.h)
-* [COPYING](/COPYING)
 
