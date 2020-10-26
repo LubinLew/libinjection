@@ -5,14 +5,14 @@ MODE=relase
 #############################################################
 CC=gcc
 
-CFLAGS=-Wall -WError \
+CFLAGS=-c -Wall -Werror \
   -O3 \
   -pie \
   -fPIE \
   -fPIC \
   -ansi \
   -pedantic \
-  -param \
+  --param ssp-buffer-size=4\
   -Wextra \
   -Wshadow \
   -Wformat \
@@ -22,7 +22,6 @@ CFLAGS=-Wall -WError \
   -Wpointer-arith \
   -Wstack-protector \
   -fstack-protector \
-  -ssp-buffer-size=4 \
   -D_FORTIFY_SOURCE=2
 
 LFAGS=
