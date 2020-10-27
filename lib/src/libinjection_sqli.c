@@ -28,12 +28,7 @@
 #define LIBINJECTION_SQLI_TOKEN_SIZE  sizeof(((sqli_token_t*)(0))->val)
 #define LIBINJECTION_SQLI_MAX_TOKENS  5
 
-#ifndef TRUE
-#define TRUE 1
-#endif
-#ifndef FALSE
-#define FALSE 0
-#endif
+
 
 #define CHAR_NULL    '\0'
 #define CHAR_SINGLE  '\''
@@ -327,7 +322,7 @@ static int st_is_unary_op(const sqli_token_t * st)
     const size_t len = st->len;
 
     if (st->type != TYPE_OPERATOR) {
-        return FALSE;
+        return LI_FALSE;
     }
 
     switch (len) {
@@ -338,7 +333,7 @@ static int st_is_unary_op(const sqli_token_t * st)
     case 3:
         return cstrcasecmp("NOT", str, 3) == 0;
     default:
-        return FALSE;
+        return LI_FALSE;
     }
 }
 
@@ -1202,7 +1197,7 @@ libinjection_sqli_tokenize(sqli_state_t* sf)
     const size_t  slen = sf->slen;
 
     if (unlikely(slen == 0)) {
-        return FALSE;
+        return LI_FALSE;
     }
 
     struct_clear(current);
@@ -1216,7 +1211,7 @@ libinjection_sqli_tokenize(sqli_state_t* sf)
     if (*pos == 0 && (sf->flags & (FLAG_QUOTE_SINGLE | FLAG_QUOTE_DOUBLE))) {
         *pos = parse_string_core(s, slen, 0, current, flag2delim(sf->flags), 0);
         sf->stats_tokens += 1;
-        return TRUE;
+        return LI_TRUE;
     }
 
     while (*pos < slen) {
@@ -1236,10 +1231,10 @@ libinjection_sqli_tokenize(sqli_state_t* sf)
          */
         if (current->type != CHAR_NULL) {
             sf->stats_tokens += 1;
-            return TRUE;
+            return LI_TRUE;
         }
     }
-    return FALSE;
+    return LI_FALSE;
 }
 
 void 
@@ -1321,7 +1316,7 @@ syntax_merge_words(sqli_state_t* sf,sqli_token_t* a, sqli_token_t* b)
          a->type == TYPE_EXPRESSION ||
          a->type == TYPE_TSQL ||
          a->type == TYPE_SQLTYPE)) {
-        return FALSE;
+        return LI_FALSE;
     }
 
     if (!
@@ -1334,14 +1329,14 @@ syntax_merge_words(sqli_state_t* sf,sqli_token_t* a, sqli_token_t* b)
          b->type == TYPE_TSQL ||
          b->type == TYPE_SQLTYPE ||
          b->type == TYPE_LOGIC_OPERATOR)) {
-        return FALSE;
+        return LI_FALSE;
     }
 
     sz1 = a->len;
     sz2 = b->len;
     sz3 = sz1 + sz2 + 1; /* +1 for space in the middle */
     if (sz3 >= LIBINJECTION_SQLI_TOKEN_SIZE) { /* make sure there is room for ending null */
-        return FALSE;
+        return LI_FALSE;
     }
     /*
      * oddly annoying  last.val + ' ' + current.val
@@ -1354,9 +1349,9 @@ syntax_merge_words(sqli_state_t* sf,sqli_token_t* a, sqli_token_t* b)
 
     if (ch != CHAR_NULL) {
         st_assign(a, ch, a->pos, sz3, tmp);
-        return TRUE;
+        return LI_TRUE;
     } else {
-        return FALSE;
+        return LI_FALSE;
     }
 }
 
@@ -1984,7 +1979,7 @@ int libinjection_sqli_blacklist(sqli_state_t* sql_state)
 
     if (len < 1) {
         sql_state->reason = __LINE__;
-        return FALSE;
+        return LI_FALSE;
     }
 
     /*
@@ -2014,14 +2009,14 @@ int libinjection_sqli_blacklist(sqli_state_t* sql_state)
      */
     if (!patmatch) {
         sql_state->reason = __LINE__;
-        return FALSE;
+        return LI_FALSE;
     }
 
-    return TRUE;
+    return LI_TRUE;
 }
 
 /*
- * return TRUE if SQLi, false is benign
+ * return LI_TRUE if SQLi, false is benign
  */
 int libinjection_sqli_not_whitelist(sqli_state_t* sql_state)
 {
@@ -2044,7 +2039,7 @@ int libinjection_sqli_not_whitelist(sqli_state_t* sql_state)
         if (my_memmem(sql_state->s, sql_state->slen,
                       "sp_password", strlen("sp_password"))) {
             sql_state->reason = __LINE__;
-            return TRUE;
+            return LI_TRUE;
         }
     }
 
@@ -2066,10 +2061,10 @@ int libinjection_sqli_not_whitelist(sqli_state_t* sql_state)
                  * other wise it has folding or comments
                  */
                 sql_state->reason = __LINE__;
-                return FALSE;
+                return LI_FALSE;
             } else {
                 sql_state->reason = __LINE__;
-                return TRUE;
+                return LI_TRUE;
             }
         }
         /*
@@ -2077,7 +2072,7 @@ int libinjection_sqli_not_whitelist(sqli_state_t* sql_state)
          */
         if (sql_state->tokenvec[1].val[0] == '#') {
             sql_state->reason = __LINE__;
-            return FALSE;
+            return LI_FALSE;
         }
 
         /*
@@ -2088,7 +2083,7 @@ int libinjection_sqli_not_whitelist(sqli_state_t* sql_state)
             sql_state->tokenvec[1].type == TYPE_COMMENT &&
             sql_state->tokenvec[1].val[0] != '/') {
                 sql_state->reason = __LINE__;
-                return FALSE;
+                return LI_FALSE;
         }
 
         /*
@@ -2097,7 +2092,7 @@ int libinjection_sqli_not_whitelist(sqli_state_t* sql_state)
         if (sql_state->tokenvec[0].type == TYPE_NUMBER &&
             sql_state->tokenvec[1].type == TYPE_COMMENT &&
             sql_state->tokenvec[1].val[0] == '/') {
-            return TRUE;
+            return LI_TRUE;
         }
 
         /**
@@ -2117,7 +2112,7 @@ int libinjection_sqli_not_whitelist(sqli_state_t* sql_state)
             if (sql_state->stats_tokens > 2) {
                 /* we have some folding going on, highly likely SQLi */
                 sql_state->reason = __LINE__;
-                return TRUE;
+                return LI_TRUE;
             }
             /*
              * we check that next character after the number is either whitespace,
@@ -2129,17 +2124,17 @@ int libinjection_sqli_not_whitelist(sqli_state_t* sql_state)
                  * this isn't exactly correct.. ideally we should skip over all whitespace
                  * but this seems to be ok for now
                  */
-                return TRUE;
+                return LI_TRUE;
             }
             if (ch == '/' && sql_state->s[sql_state->tokenvec[0].len + 1] == '*') {
-                return TRUE;
+                return LI_TRUE;
             }
             if (ch == '-' && sql_state->s[sql_state->tokenvec[0].len + 1] == '-') {
-                return TRUE;
+                return LI_TRUE;
             }
 
             sql_state->reason = __LINE__;
-            return FALSE;
+            return LI_FALSE;
         }
 
         /*
@@ -2149,7 +2144,7 @@ int libinjection_sqli_not_whitelist(sqli_state_t* sql_state)
         if ((sql_state->tokenvec[1].len > 2)
             && sql_state->tokenvec[1].val[0] == '-') {
             sql_state->reason = __LINE__;
-            return FALSE;
+            return LI_FALSE;
         }
 
         break;
@@ -2171,18 +2166,18 @@ int libinjection_sqli_not_whitelist(sqli_state_t* sql_state)
                      * if ....foo" + "bar....
                      */
                     sql_state->reason = __LINE__;
-                    return TRUE;
+                    return LI_TRUE;
                 }
                 if (sql_state->stats_tokens == 3) {
                     sql_state->reason = __LINE__;
-                    return FALSE;
+                    return LI_TRUE;
                 }
 
                 /*
                  * not SQLi
                  */
                 sql_state->reason = __LINE__;
-                return FALSE;
+                return LI_FALSE;
         } else if (streq(sql_state->fingerprint, "s&n") ||
                    streq(sql_state->fingerprint, "n&1") ||
                    streq(sql_state->fingerprint, "1&1") ||
@@ -2193,7 +2188,7 @@ int libinjection_sqli_not_whitelist(sqli_state_t* sql_state)
              */
             if (sql_state->stats_tokens == 3) {
                 sql_state->reason = __LINE__;
-                return FALSE;
+                return LI_FALSE;
             }
         } else if (sql_state->tokenvec[1].type == TYPE_KEYWORD) {
             if ((sql_state->tokenvec[1].len < 5) ||
@@ -2202,7 +2197,7 @@ int libinjection_sqli_not_whitelist(sqli_state_t* sql_state)
                  * then treat as safe
                  */
                 sql_state->reason = __LINE__;
-                return FALSE;
+                return LI_FALSE;
             }
         }
         break;
@@ -2214,7 +2209,7 @@ int libinjection_sqli_not_whitelist(sqli_state_t* sql_state)
     } /* case 5 */
     } /* end switch */
 
-    return TRUE;
+    return LI_TRUE;
 }
 
 /**  Main API, detects SQLi in an input.
@@ -2249,7 +2244,7 @@ libinjection_is_sqli(sqli_state_t* sql_state)
 
     /* no input? not SQLi */
     if (unlikely(len == 0)) {
-        return FALSE;
+        return LI_FALSE;
     }
 
     /* test input "as-is" */
@@ -2258,7 +2253,7 @@ libinjection_is_sqli(sqli_state_t* sql_state)
                             sql_state->fingerprint, sql_state->fingerprint_length);
     if (unlikely(ret)) {
         Trace("[SQL-ANSI]fingerprint match, %s", sql_state->fingerprint);
-        return TRUE;
+        return LI_TRUE;
     }  
 
     if (reparse_as_mysql(sql_state)) {
@@ -2267,7 +2262,7 @@ libinjection_is_sqli(sqli_state_t* sql_state)
                                 sql_state->fingerprint, sql_state->fingerprint_length);
         if (unlikely(ret)) {
             Trace("[SQL-MYSQL]fingerprint match, %s", sql_state->fingerprint);
-            return TRUE;
+            return LI_TRUE;
         }
     }
 
@@ -2284,12 +2279,12 @@ libinjection_is_sqli(sqli_state_t* sql_state)
         libinjection_sqli_fingerprint(sql_state, FLAG_QUOTE_SINGLE | FLAG_SQL_ANSI);
         if (sql_state->lookup(sql_state, LOOKUP_FINGERPRINT,
                               sql_state->fingerprint, sql_state->fingerprint_length)) {
-            return TRUE;
+            return LI_TRUE;
         } else if (reparse_as_mysql(sql_state)) {
             libinjection_sqli_fingerprint(sql_state, FLAG_QUOTE_SINGLE | FLAG_SQL_MYSQL);
             if (sql_state->lookup(sql_state, LOOKUP_FINGERPRINT,
                                   sql_state->fingerprint, sql_state->fingerprint_length)) {
-                return TRUE;
+                return LI_TRUE;
             }
         }
     }
@@ -2301,12 +2296,12 @@ libinjection_is_sqli(sqli_state_t* sql_state)
         libinjection_sqli_fingerprint(sql_state, FLAG_QUOTE_DOUBLE | FLAG_SQL_MYSQL);
         if (sql_state->lookup(sql_state, LOOKUP_FINGERPRINT,
                               sql_state->fingerprint, sql_state->fingerprint_length)) {
-            return TRUE;
+            return LI_TRUE;
         }
     }
 
 
-    return FALSE;
+    return LI_FALSE;
 }
 
 /**

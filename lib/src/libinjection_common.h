@@ -14,6 +14,10 @@
 extern "C" {
 #endif /* __cplusplus */
 /*-----------------------------------------------------------------------------------*/
+#define LI_TRUE  (1)
+#define LI_FALSE (0)
+
+
 #if defined (__GNUC__)
 /* provide the compiler with branch prediction information */
 #define likely(x)     __builtin_expect(!!(x), 1)

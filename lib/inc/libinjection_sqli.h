@@ -105,7 +105,7 @@ struct libinjection_sqli_state {
     /* Number of ddx (dash-dash-[notwhite]) comments
      * ANSI SQL treats these are comments, MySQL treats this as
      * two unary operators '-' '-'
-     * If you are parsing result returns FALSE and
+     * If you are parsing result returns LI_FALSE and
      * stats_comment_dd > 0, you should reparse with COMMENT_MYSQL
      */
     int stats_comment_ddx;
@@ -219,14 +219,14 @@ int libinjection_sqli_check_fingerprint(sqli_state_t * sql_state);
 
 /* Given a pattern determine if it's a SQLi pattern.
  *
- * \return TRUE if sqli, false otherwise
+ * \return LI_TRUE if sqli, false otherwise
  */
 int libinjection_sqli_blacklist(sqli_state_t* sql_state);
 
 /* Given a positive match for a pattern (i.e. pattern is SQLi), this function
  * does additional analysis to reduce false positives.
  *
- * \return TRUE if SQLi, false otherwise
+ * \return LI_TRUE if SQLi, false otherwise
  */
 int libinjection_sqli_not_whitelist(sqli_state_t * sql_state);
 
