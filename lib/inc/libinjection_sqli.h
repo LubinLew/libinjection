@@ -35,10 +35,7 @@ typedef enum lookup_type {
 
 
 typedef struct libinjection_sqli_token {
-    /*
-     * position and length of token
-     * in original string
-     */
+    /* position and length of token in original string */
     size_t pos;
     size_t len;
 

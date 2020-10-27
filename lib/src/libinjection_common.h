@@ -41,7 +41,7 @@ extern "C" {
 
 /*################ DEBUG #####################*/
 #ifdef __DEBUG
-#define Trace(fmt, ...) printf(stderr, "[%s:%d]"fmt"\n", __FILE__, __LINE__, ##__VA_ARGS__)
+#define Trace(fmt, ...) fprintf(stderr, "[%s:%d]"fmt"\n", __FILE__, __LINE__, ##__VA_ARGS__)
 #else  /* __DEBUG */
 #define Trace(fmt, ...)
 #endif /* __DEBUG */

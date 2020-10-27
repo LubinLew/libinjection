@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := all
-LIBNAME=libinjection
+LIBNAME=injection
 OUTDIR=target
 MODE=relase
 #############################################################
@@ -22,7 +22,8 @@ CFLAGS=-c -Wall -Werror \
   -Wpointer-arith \
   -Wstack-protector \
   -fstack-protector \
-  -D_FORTIFY_SOURCE=2
+  -D_FORTIFY_SOURCE=2 \
+  -D__DEBUG
 
 LFAGS=
 
@@ -38,15 +39,15 @@ OBJS=$(SOURCES:%.c=${OUTDIR}/%.o)
 
 .PHONY: all check clean
 
-all: ${LIBNAME}.a ${LIBNAME}.so
+all: lib${LIBNAME}.a lib${LIBNAME}.so
 
 	
-${LIBNAME}.a: ${OBJS}
+lib${LIBNAME}.a: ${OBJS}
 	@ echo "[AR] $@"
 	@ ar crs ${OUTDIR}/$@ $^
 	@ ls -lh ${OUTDIR}/$@
 
-${LIBNAME}.so: ${OBJS}
+lib${LIBNAME}.so: ${OBJS}
 	@ echo "[SO] $@"
 	@ ${CC} -shared -o ${OUTDIR}/$@ $^
 	@ ls -lh ${OUTDIR}/$@
@@ -58,6 +59,9 @@ check:
 clean:
 	@ rm -rf ${OUTDIR}
 	@ echo "ALL Clear !!!"
+
+example:
+	${CC} -Wall ${INCS} lib/example/sqil_test.c -o sqli_test -L${OUTDIR} -l:lib${LIBNAME}.a
 
 #############################################################
 ${OUTDIR}/%.o:%.c

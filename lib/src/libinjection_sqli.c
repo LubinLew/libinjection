@@ -292,8 +292,9 @@ static void st_assign_char(sqli_token_t * st, const char stype, size_t pos, size
     st->val[1] = CHAR_NULL;
 }
 
-static void st_assign(sqli_token_t * st, const char stype,
-                      size_t pos, size_t len, const char* value)
+static void 
+st_assign(sqli_token_t *st, const char stype,
+              size_t pos, size_t len, const char *value)
 {
     const size_t MSIZE = LIBINJECTION_SQLI_TOKEN_SIZE;
     size_t last = len < MSIZE ? len : (MSIZE - 1);
@@ -304,19 +305,22 @@ static void st_assign(sqli_token_t * st, const char stype,
     st->val[last] = CHAR_NULL;
 }
 
-static void st_copy(sqli_token_t * dest, const sqli_token_t * src)
+static void 
+st_copy(sqli_token_t *dest, const sqli_token_t *src)
 {
     memcpy(dest, src, sizeof(sqli_token_t));
 }
 
-static int st_is_arithmetic_op(const sqli_token_t* st)
+static int 
+st_is_arithmetic_op(const sqli_token_t *st)
 {
     const char ch = st->val[0];
     return (st->type == TYPE_OPERATOR && st->len == 1 &&
             (ch == '*' || ch == '/' || ch == '-' || ch == '+' || ch == '%'));
 }
 
-static int st_is_unary_op(const sqli_token_t * st)
+static int 
+st_is_unary_op(const sqli_token_t *st)
 {
     const char* str = st->val;
     const size_t len = st->len;
@@ -342,12 +346,14 @@ static int st_is_unary_op(const sqli_token_t * st)
  *
  */
 
-static size_t parse_white(sqli_state_t * sf)
+static size_t 
+parse_white(sqli_state_t *sf)
 {
     return sf->pos + 1;
 }
 
-static size_t parse_operator1(sqli_state_t * sf)
+static size_t 
+parse_operator1(sqli_state_t *sf)
 {
     const char *cs = sf->s;
     size_t pos = sf->pos;
@@ -356,7 +362,8 @@ static size_t parse_operator1(sqli_state_t * sf)
     return pos + 1;
 }
 
-static size_t parse_other(sqli_state_t * sf)
+static size_t 
+parse_other(sqli_state_t *sf)
 {
     const char *cs = sf->s;
     size_t pos = sf->pos;
@@ -365,7 +372,8 @@ static size_t parse_other(sqli_state_t * sf)
     return pos + 1;
 }
 
-static size_t parse_char(sqli_state_t * sf)
+static size_t 
+parse_char(sqli_state_t *sf)
 {
     const char *cs = sf->s;
     size_t pos = sf->pos;
@@ -374,7 +382,8 @@ static size_t parse_char(sqli_state_t * sf)
     return pos + 1;
 }
 
-static size_t parse_eol_comment(sqli_state_t * sf)
+static size_t 
+parse_eol_comment(sqli_state_t *sf)
 {
     const char *cs = sf->s;
     const size_t slen = sf->slen;
@@ -394,7 +403,8 @@ static size_t parse_eol_comment(sqli_state_t * sf)
 /** In ANSI mode, hash is an operator
  *  In MYSQL mode, it's a EOL comment like '--'
  */
-static size_t parse_hash(sqli_state_t * sf)
+static size_t 
+parse_hash(sqli_state_t *sf)
 {
     sf->stats_comment_hash += 1;
     if (sf->flags & FLAG_SQL_MYSQL) {
@@ -406,7 +416,8 @@ static size_t parse_hash(sqli_state_t * sf)
     }
 }
 
-static size_t parse_dash(sqli_state_t * sf)
+static size_t 
+parse_dash(sqli_state_t *sf)
 {
     const char *cs = sf->s;
     const size_t slen = sf->slen;
@@ -455,7 +466,8 @@ static size_t parse_dash(sqli_state_t * sf)
  * in MySQL 4.  The last version of MySQL 4 was in 2008
  *
  */
-static size_t is_mysql_comment(const char *cs, const size_t len, size_t pos)
+static size_t 
+is_mysql_comment(const char *cs, const size_t len, size_t pos)
 {
     /* so far...
      * cs[pos] == '/' && cs[pos+1] == '*'
@@ -478,7 +490,8 @@ static size_t is_mysql_comment(const char *cs, const size_t len, size_t pos)
     return 1;
 }
 
-static size_t parse_slash(sqli_state_t * sf)
+static size_t 
+parse_slash(sqli_state_t *sf)
 {
     const char* ptr;
     size_t clen;
@@ -529,7 +542,8 @@ static size_t parse_slash(sqli_state_t * sf)
 }
 
 
-static size_t parse_backslash(sqli_state_t * sf)
+static size_t 
+parse_backslash(sqli_state_t *sf)
 {
     const char *cs = sf->s;
     const size_t slen = sf->slen;
@@ -547,7 +561,8 @@ static size_t parse_backslash(sqli_state_t * sf)
     }
 }
 
-static size_t parse_operator2(sqli_state_t * sf)
+static size_t 
+parse_operator2(sqli_state_t *sf)
 {
     char ch;
     const char *cs = sf->s;
@@ -597,7 +612,8 @@ static size_t parse_operator2(sqli_state_t * sf)
  *       " \\"   "  two backslash = not escaped!
  *       "\\\"   "  three backslash = escaped!
  */
-static int is_backslash_escaped(const char* end, const char* start)
+static int 
+is_backslash_escaped(const char *end, const char *start)
 {
     const char* ptr;
     for (ptr = end; ptr >= start; ptr--) {
@@ -610,7 +626,8 @@ static int is_backslash_escaped(const char* end, const char* start)
     return (end - ptr) & 1;
 }
 
-static size_t is_double_delim_escaped(const char* cur,  const char* end)
+static size_t 
+is_double_delim_escaped(const char *cur,  const char *end)
 {
     return  ((cur + 1) < end) && *(cur+1) == *cur;
 }
@@ -625,11 +642,10 @@ static size_t is_double_delim_escaped(const char* cur,  const char* end)
  */
 static size_t 
 parse_string_core(const char *cs, const size_t len, size_t pos,
-                         sqli_token_t * st, char delim, size_t offset)
+                         sqli_token_t *st, char delim, size_t offset)
 {
     /* offset is to skip the perhaps first quote char */
-    const char *qpos = memchr((const void *)(cs + pos + offset), delim,
-                              len - pos - offset);
+    const char *qpos = memchr(cs + pos + offset, delim, len - pos - offset);
 
     /* then keep string open/close info */
     if (offset > 0) {
@@ -641,30 +657,22 @@ parse_string_core(const char *cs, const size_t len, size_t pos,
     }
 
     for(;;) {
-        if (qpos == NULL) {
-            /*
-             * string ended with no trailing quote
-             * assign what we have
-             */
+        if (NULL == qpos) {
+            /* string ended with no trailing quote assign what we have */
             st_assign(st, TYPE_STRING, pos + offset, len - pos - offset, cs + pos + offset);
             st->str_close = CHAR_NULL;
             return len;
-        } else if ( is_backslash_escaped(qpos - 1, cs + pos + offset)) {
+        } else if (is_backslash_escaped(qpos - 1, cs + pos + offset)) {
             /* keep going, move ahead one character */
-            qpos =
-                (const char *) memchr((const void *) (qpos + 1), delim,
-                                      (size_t)((cs + len) - (qpos + 1)));
+            qpos = memchr((const void *) (qpos + 1), delim, (size_t)((cs + len) - (qpos + 1)));
             continue;
         } else if (is_double_delim_escaped(qpos, cs + len)) {
             /* keep going, move ahead two characters */
-            qpos =
-                (const char *) memchr((const void *) (qpos + 2), delim,
-                                      (size_t)((cs + len) - (qpos + 2)));
+            qpos = memchr(qpos + 2, delim,(size_t)((cs + len) - (qpos + 2)));
             continue;
         } else {
             /* hey it's a normal string */
-            st_assign(st, TYPE_STRING, pos + offset,
-                      (size_t)(qpos - (cs + pos + offset)), cs + pos + offset);
+            st_assign(st, TYPE_STRING, pos + offset, (size_t)(qpos - (cs + pos + offset)), cs + pos + offset);
             st->str_close = delim;
             return (size_t)(qpos - cs + 1);
         }
@@ -674,7 +682,8 @@ parse_string_core(const char *cs, const size_t len, size_t pos,
 /**
  * Used when first char is a ' or "
  */
-static size_t parse_string(sqli_state_t * sf)
+static size_t 
+parse_string(sqli_state_t *sf)
 {
     const char *cs = sf->s;
     const size_t slen = sf->slen;
@@ -691,7 +700,8 @@ static size_t parse_string(sqli_state_t * sf)
  *    N or n:  mysql "National Character set"
  *    E     :  psql  "Escaped String"
  */
-static size_t parse_estring(sqli_state_t * sf)
+static size_t 
+parse_estring(sqli_state_t *sf)
 {
     const char *cs = sf->s;
     const size_t slen = sf->slen;
@@ -703,7 +713,8 @@ static size_t parse_estring(sqli_state_t * sf)
     return parse_string_core(cs, slen, pos, sf->current, CHAR_SINGLE, 2);
 }
 
-static size_t parse_ustring(sqli_state_t * sf)
+static size_t 
+parse_ustring(sqli_state_t *sf)
 {
     const char *cs = sf->s;
     size_t slen = sf->slen;
@@ -722,7 +733,8 @@ static size_t parse_ustring(sqli_state_t * sf)
     }
 }
 
-static size_t parse_qstring_core(sqli_state_t * sf, size_t offset)
+static size_t 
+parse_qstring_core(sqli_state_t *sf, size_t offset)
 {
     char ch;
     const char *strend;
@@ -775,7 +787,8 @@ static size_t parse_qstring_core(sqli_state_t * sf, size_t offset)
 /*
  * Oracle's q string
  */
-static size_t parse_qstring(sqli_state_t * sf)
+static size_t 
+parse_qstring(sqli_state_t *sf)
 {
     return parse_qstring_core(sf, 0);
 }
@@ -784,7 +797,8 @@ static size_t parse_qstring(sqli_state_t * sf)
  * mysql's N'STRING' or
  * ...  Oracle's nq string
  */
-static size_t parse_nqstring(sqli_state_t * sf)
+static size_t 
+parse_nqstring(sqli_state_t *sf)
 {
     size_t slen = sf->slen;
     size_t pos = sf->pos;
@@ -798,7 +812,8 @@ static size_t parse_nqstring(sqli_state_t * sf)
  * binary literal string
  * re: [bB]'[01]*'
  */
-static size_t parse_bstring(sqli_state_t *sf)
+static size_t 
+parse_bstring(sqli_state_t *sf)
 {
     size_t wlen;
     const char *cs = sf->s;
@@ -827,7 +842,8 @@ static size_t parse_bstring(sqli_state_t *sf)
  * mysql has requirement of having EVEN number of chars,
  *  but pgsql does not
  */
-static size_t parse_xstring(sqli_state_t *sf)
+static size_t 
+parse_xstring(sqli_state_t *sf)
 {
     size_t wlen;
     const char *cs = sf->s;
@@ -855,7 +871,8 @@ static size_t parse_xstring(sqli_state_t *sf)
  * http://stackoverflow.com/questions/3551284/sql-serverwhat-do-brackets-mean-around-column-name
  *
  */
-static size_t parse_bword(sqli_state_t * sf)
+static size_t 
+parse_bword(sqli_state_t *sf)
 {
     const char *cs = sf->s;
     size_t pos = sf->pos;
@@ -869,7 +886,8 @@ static size_t parse_bword(sqli_state_t * sf)
     }
 }
 
-static size_t parse_word(sqli_state_t * sf)
+static size_t 
+parse_word(sqli_state_t *sf)
 {
     char ch;
     char delim;
@@ -919,7 +937,8 @@ static size_t parse_word(sqli_state_t * sf)
  * and a bare word.
  *
  */
-static size_t parse_tick(sqli_state_t* sf)
+static size_t 
+parse_tick(sqli_state_t *sf)
 {
     size_t pos =  parse_string_core(sf->s, sf->slen, sf->pos, sf->current, CHAR_TICK, 1);
 
@@ -945,7 +964,8 @@ static size_t parse_tick(sqli_state_t* sf)
     return pos;
 }
 
-static size_t parse_var(sqli_state_t* sf)
+static size_t 
+parse_var(sqli_state_t *sf)
 {
     size_t xlen;
     const char *cs = sf->s;
@@ -997,7 +1017,8 @@ static size_t parse_var(sqli_state_t* sf)
     }
 }
 
-static size_t parse_money(sqli_state_t* sf)
+static size_t 
+parse_money(sqli_state_t *sf)
 {
     size_t xlen;
     const char* strend;
@@ -1077,7 +1098,8 @@ static size_t parse_money(sqli_state_t* sf)
     }
 }
 
-static size_t parse_number(sqli_state_t* sf)
+static size_t 
+parse_number(sqli_state_t *sf)
 {
     size_t xlen;
     size_t start;
@@ -1182,13 +1204,14 @@ static size_t parse_number(sqli_state_t* sf)
  * without having to regenerated the SWIG (or other binding) in minor
  * releases.
  */
-const char* libinjection_version()
+const char *
+libinjection_version()
 {
     return LIBINJECTION_VERSION;
 }
 
 int 
-libinjection_sqli_tokenize(sqli_state_t* sf)
+libinjection_sqli_tokenize(sqli_state_t *sf)
 {
     pt2Function   fnptr;
     size_t       *pos = &sf->pos;
@@ -1238,7 +1261,7 @@ libinjection_sqli_tokenize(sqli_state_t* sf)
 }
 
 void 
-libinjection_sqli_init(sqli_state_t* sf, const char *data, size_t len, int flags)
+libinjection_sqli_init(sqli_state_t *sf, const char *data, size_t len, int flags)
 {
     if (flags == 0) {
         flags = FLAG_QUOTE_NONE | FLAG_SQL_ANSI;
@@ -1298,7 +1321,7 @@ libinjection_sqli_callback(sqli_state_t* sf, ptr_lookup_fn fn, void* userdata)
  *
  */
 static int 
-syntax_merge_words(sqli_state_t* sf,sqli_token_t* a, sqli_token_t* b)
+syntax_merge_words(sqli_state_t *sf, sqli_token_t *a, sqli_token_t *b)
 {
     size_t sz1;
     size_t sz2;
@@ -1356,7 +1379,7 @@ syntax_merge_words(sqli_state_t* sf,sqli_token_t* a, sqli_token_t* b)
 }
 
 int 
-libinjection_sqli_fold(sqli_state_t* sf)
+libinjection_sqli_fold(sqli_state_t *sf)
 {
     sqli_token_t last_comment;
     size_t pos = 0;  /* the position of where the NEXT token goes */
@@ -1458,7 +1481,7 @@ libinjection_sqli_fold(sqli_state_t* sf)
                 }
             }
         }
-        Trace("more=%d pos=%d left=%d", more, (int)pos, (int)left);;
+        Trace("more=%d pos=%d left=%d", more, (int)pos, (int)left);
         /* did we get 2 tokens? if not then we are done */
         if (pos - left < 2) {
             left = pos;
